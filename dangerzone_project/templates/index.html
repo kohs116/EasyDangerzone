@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Dangerzone - Convert PDF to safe</title>
+
+    <!-- 검색엔진이 내부적으로 확인할 때 사용 -->
+    <meta name = "author" content ="20_HF262">
+    <meta name="description" content = "Convert PDF to safe.">
+    <!-- device-width : 가로너비는 그대로 사용, initial-scale=1: 기본확대축소비율이 1
+    user-scalable=no : 손가락으로 확대나 축소를 사용하지 않겠다. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no
+    ,maximum-scale=1, minimum-scale=1">
+    <!-- internet explorer에서 rendering 되는 방식, 최신 표준 모드에서 작동 -->
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!-- http://ogp.me/ : 외부에 정보를 제공할 것-->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Dangerzone">
+    <meta property="og:title" content="Convert PDF to safe">
+    <meta property="og:description" content="If you give any files, then we can convert it to safe.">
+    <meta property="og:image" content="./images/logo.png">
+    <meta property="og:url" content="http://15.165.199.35:5000/">
+
+    <!-- https://developer.twitter.com/en/docs/tweets/optimize-with-cards/guides/getting-started.html / 외부에 정보를 twitter card로 제공-->
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:site" content="Dangerzone">
+    <meta property="twitter:title" content="Convert PDF to safe">
+    <meta property="twitter:description" content="If you give any files, then we can convert it to safe.">
+    <meta property="twitter:image" content="./images/logo.png">
+    <meta property="twitter:url" content="http://15.165.199.35:5000/">
+
+    <!-- favicon : 웹페이지에 접속했을 때 상단에 보여지는 아이콘 -->
+    <link rel="icon" href="./images/logo.png">
+    <!-- 스마트폰 아이콘으로 사용가능 -->
+    <link rel="apple-touch-icon" href="./images/logo.png">
+
+    <!-- 구글 폰트 적용 https://fonts.google.com/ -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.css">
+    <!-- 초기화 한 후 main.css가 호출되도록 reset.css보다 아래에 main.css에 둔다.  -->
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/main.css')}}">
+
+</head>
+<body>
+<!-- body의 설정들을 대신할 컨테이너 -->
+<div class="body__container">
+
+    <!-- HEADER -->
+    <header class="section">
+        <div class="inner clearfix">
+
+            <div class="menu-group float--left">
+                <div class="logo">
+                    <a href="https://dangerzone.rocks/">Dangerzone</a>
+                </div>
+                <ul class="main-menu">
+                    <li><a href="index.html">HOME</a></li>
+                </ul>
+            </div>
+
+
+        </div>
+    </header>
+
+    <!-- VISUAL  -->
+    <section class="section section--visual">
+        <div class="inner">
+
+            <div class="summary">
+                <h2 class="summary__title">
+                    Convert PDF to SAFE!
+                </h2>
+                <div class="filebox">
+                    <form action = "http://localhost:5000/fileUpload" method = "POST" enctype = "multipart/form-data">
+                        <!--<label for ="file">UPLOAD</label>-->
+                        <input type = "file" name = "file" class="file-upload"/>
+                        <input type = "submit" class="file-submit"/>
+
+                        <p class="caption">Upload PDF that you want to convert to safe.</p>
+                        <!--<input type="file" id="file--upload">-->
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="section">
+        <div class="inner clearfix">
+
+            <ul class="site-links float--right">
+                <li><a href="https://lab.hanium.or.kr/20_hf262/main">Contact GitLab</a></li>
+            </ul>
+
+            <ul class="site-links float--left">
+                <li><a href=https://www.hanium.or.kr/portal/index.do>2020 HANIUM</a></li>
+            </ul>
+
+            <div class = "logo">
+                <a href="index.html"><img src="{{ url_for('static',filename='images/gitlablogo.png')}}" width="20" height="20"></a>
+                <!--./images/gitlablogo.png" -->
+            </div>
+
+        </div>
+    </footer>
+
+</div>
+
+
+</body>
+</html>
