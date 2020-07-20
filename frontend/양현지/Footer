@@ -1,0 +1,19 @@
+<!-- Footer -->
+    <footer class="section">
+        <div class="inner clearfix">
+
+            <ul class="site-links float--right">
+                <li><a href="https://lab.hanium.or.kr/20_hf262/main">Contact GitLab</a></li>
+            </ul>
+
+
+            <ul class="site-links float--left">
+                <li><a href=https://www.hanium.or.kr/portal/index.do>2020 HANIUM</a></li>
+            </ul>
+
+            <div style="text-align: center"><a href="index.html"><img src="img/gitlablogo.png" width="20" height="20"></a>
+            </div>
+
+
+        </div>
+    </footer>
