@@ -40,7 +40,7 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.css">
     <!-- 초기화 한 후 main.css가 호출되도록 reset.css보다 아래에 main.css에 둔다.  -->
-    <link rel="stylesheet" href="http://ec2-13-209-68-171.ap-northeast-2.compute.amazonaws.com:5000/static/css/main.css">
+    <link rel="stylesheet" href="http://ec2-3-35-24-8.ap-northeast-2.compute.amazonaws.com:5000/static/css/main.css">
     <script src="http://code.jquery.com/jquery-latest.min.js"></script>
 </head>
 <body>
@@ -74,7 +74,7 @@
 
         request({
             method: "POST",
-            url: "http://ec2-13-209-68-171.ap-northeast-2.compute.amazonaws.com:5000/fileUpload",
+            url: "http://ec2-3-35-24-8.ap-northeast-2.compute.amazonaws.com:5000/fileUpload",
             headers: formData.getHeaders(),
             body:  formData
         }).pipe(fs.createWriteStream(filename + '_safe_file.pdf')).on('finish', () => {
@@ -116,7 +116,7 @@
                     Convert PDF to SAFE!
                 </h2>
                 <div class="filebox">
-                    <form action="http://ec2-13-209-68-171.ap-northeast-2.compute.amazonaws.com:5000/fileUpload" name="main" method="POST" enctype="multipart/form-data">
+                    <form action="http://ec2-3-35-24-8.ap-northeast-2.compute.amazonaws.com:5000/fileUpload" name="main" method="POST" enctype="multipart/form-data">
                         <!--<label for ="file">UPLOAD</label>-->
                         <input type="file" id="testtest" name="file" class="file-upload"/>
                         <input type="submit" class="file-submit"/>
