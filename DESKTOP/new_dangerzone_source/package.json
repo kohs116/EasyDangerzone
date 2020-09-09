@@ -1,0 +1,63 @@
+{
+  "name": "dangerzone-desktop",
+  "version": "1.0.0",
+  "description": "A Dangerzone Desktop application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "deploy": "electron-builder --windows nsis:ia32"
+  },
+  "repository": "https://github.com/electron/electron-quick-start",
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "tutorial",
+    "demo"
+  ],
+  "author": "GitHub",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "^9.0.0",
+    "electron-builder": "^22.3.2"
+  },
+  "build": {
+    "productName": "Dangerzone",
+    "appId": "com.dangerzone",
+    "asar": true,
+    "protocols": {
+      "name": "Dangerzone",
+      "schemes": [
+        "Dangerzone"
+      ]
+    },
+    "win": {
+      "target": [
+        "zip",
+        "nsis"
+      ],
+      "icon": "./resources/installer/Icon.ico"
+    },
+    "nsis": {
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "menuCategory": true,
+      "oneClick": false,
+      "perMachine": true,
+      "include": "build/installer.nsh",
+      "allowToChangeInstallationDirectory": true
+    },
+    "directories": {
+      "buildResources": "./resources/installer/",
+      "output": "./dist/",
+      "app": "."
+    }
+  },
+  "dependencies": {
+    "form-data": "^3.0.0",
+    "fs": "0.0.1-security",
+    "http": "0.0.1-security",
+    "path": "^0.12.7",
+    "request": "^2.88.2"
+  }
+}

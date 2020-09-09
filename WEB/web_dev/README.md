@@ -87,7 +87,7 @@ sudo systemctl enable docker
 
 for python3:
 ```
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 위 요구사항을 모두 설치한 뒤, manage.py가 있는 폴더로 이동합니다.  
@@ -98,3 +98,12 @@ python3 manage.py runserver
 or
 python manage.py runserver
 ```
+
+외부에서 접속이 가능하도록 실제 배포를 위해서는 다음과 같이 실행합니다.
+
+```
+python3 manage.py runserver 0:8000
+or
+python manage.py runserver 0:8000
+```
+
