@@ -1,22 +1,59 @@
 from django.shortcuts import render
-import os
-import subprocess
+import os, shutil, subprocess, requests, datetime, json
 from werkzeug.utils import secure_filename
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect,FileResponse, HttpResponse, HttpResponseNotFound
 from django.core.files.storage import FileSystemStorage
 from .forms import UploadDocumentForm
 from django.core.files.storage import FileSystemStorage
-import datetime
 from django import get_version
-from django.http import FileResponse, HttpResponse, HttpResponseNotFound
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+API_KEY = getattr(settings, 'API_KEY')
 
-
-g_number_of_visitor = {'8-30':30}
-g_number_of_file = {'8-30':5}
 date = str(datetime.date.today().month) + '-' + str(datetime.date.today().day)
 # Create your views here.
 
+now = datetime.datetime.now()
+nowTuple = now.timetuple()
+# 매일 23시에 실행되도록, 근데 될려나.?
+if nowTuple.tm_hour == 23:
+    f = open("media/db/Visitor.txt", "a")
+    txt = date + ' ' + str(g_number_of_visitor[date]) + '\n'
+    f.write(txt)
+    f.close()
+
+    f = open("media/db/Filenum.txt", "a")
+    txt = date + ' ' + str(g_number_of_visitor[date]) + '\n'
+    f.write(txt)
+    f.close()
+
+g_number_of_visitor = dict()
+g_number_of_file = dict()
+
+fv = open("media/db/Visitor.txt", "r")
+ff = open("media/db/Filenum.txt","r")
+while True:
+    vline = fv.readline()
+    fline = ff.readline()
+    if not vline: break
+    if not fline: break
+    for i in range(len(vline)):
+        if vline[i] == ' ':
+            date = vline[:i]
+            num = int(vline[i+1:-1])
+            g_number_of_visitor[date] = num
+
+    for j in range(len(fline)):
+        if fline[j] == ' ':
+            date = fline[:j]
+            num = int(fline[j+1:-1])
+            g_number_of_file[date] = num
+fv.close()
+ff.close()
+
+print(g_number_of_visitor)
+print(g_number_of_file)
 def index(request):
     global g_number_of_visitor, g_number_of_file,date
     if g_number_of_visitor.get(date): #해당 날짜의 기록이 존재하면
@@ -41,32 +78,56 @@ def index(request):
 
         myfile = request.FILES['inputFile']
 
+        fn_rm = 'media/my_folder/safe-output-compressed.pdf'
+        if os.path.isfile(fn_rm):
+            os.remove(fn_rm)
+            print('existed file is deleted')
+
+#        fn_json = 'media/my_folder/virustotal-output.json'
+#        if os.path.isfile(fn_json):
+#            os.remove(fn_json)
+#            print('json file is deleted')
+
+        filelist = list()
+        mydir = '/tmp/dangerzone-pixel'
+        for f in os.listdir(mydir):
+            if f.endswith(".height") or f.endswith(".rgb") or f.endswith(".width"):
+                filelist.append(f)
+        for f in filelist:
+            os.remove(os.path.join(mydir, f))
+
         fs = FileSystemStorage(location=folder)
         fs.save(myfile.name, myfile)
         filename = myfile.name
         print("파일명", filename)
-        file_url = fs.url(filename)
-        print('file_url: ',file_url)
-        path = '/home/ubuntu/hanium-dangerzone-opensource/media/my_folder/'
-        uploadpath = " " + path + filename + " "
+        os.rename('media/my_folder/' + filename, 'media/my_folder/inputFile.pdf')
+        path = '/home/ubuntu/ubuntu-dev/media/my_folder/'
+        #path = '/home/ubuntu/hanium-dangerzone-opensource/media/my_folder/'
+        uploadpath = " " + path + "inputFile.pdf "
+        virustotal_resource_id = virustotal_upload(uploadpath)
         subprocess.call(["/usr/bin/dangerzone-container" " documenttopixels --document-filename" + uploadpath + "--pixel-dir /tmp/dangerzone-pixel --container-name flmcode/dangerzone"],shell=True)
         subprocess.call(["/usr/bin/dangerzone-container" " pixelstopdf --pixel-dir /tmp/dangerzone-pixel --safe-dir /tmp/dangerzone-safe --container-name flmcode/dangerzone --ocr 0 --ocr-lang eng"],shell=True)
-        os.rename("/tmp/dangerzone-safe/safe-output-compressed.pdf",
-                  "/tmp/dangerzone-safe/" + filename + "_" + "safe-output.pdf")
+        #os.rename("/tmp/dangerzone-safe/safe-output-compressed.pdf",
+                  # "/tmp/dangerzone-safe/" + filename + "_" + "safe-output.pdf")
         file_url = '/tmp/dangerzone-safe/safe-output-compressed.pdf'
-        rm_file = 'media/my_folder/'+filename
+        dest_url = path + 'safe-output-compressed.pdf'
+        shutil.move(file_url, dest_url)
+        rm_file = 'media/my_folder/inputFile.pdf'
         if os.path.isfile(rm_file):
             os.remove(rm_file)
             print(rm_file,"is deleted")
         # return render(request, 'fileupload.html', {'file_url': file_url})
-        fn = 'sample.pdf'
-        return pdf_view(request,fn)
+        jn = path + 'virustotal-output.json'
+        # jn = 'safe.json'
+        virustotal_download(virustotal_resource_id,jn)
+        jn = 'virustotal-output.json'
+        return viruschart(request,jn)
     else:
         return render(request, 'index.html')
 
-def pdf_view(request, fn):
+def pdf_view(request):
     fs = FileSystemStorage()
-    filename = 'my_folder/' + fn
+    filename = 'my_folder/safe-output-compressed.pdf'
     if fs.exists(filename):
         with fs.open(filename) as pdf:
             response = HttpResponse(pdf, content_type='application/pdf')
@@ -96,27 +157,51 @@ def dashboard(request):
 def fileupload(request):
     return render(request,'fileupload.html')
 
+def detection(request):
+    return render(request, 'detection.html')
+
 @csrf_exempt
 def sendmail(request):
     return render(request,'sendmail.html')
 
+def virustotal_upload(orgfile):
+    url = 'https://www.virustotal.com/vtapi/v2/file/scan'
+    params = {'apikey': API_KEY }
+    files = {'file': "'" + orgfile + "'"}
+    response = requests.post(url, files=files, params=params)
+    return response.json()['resource']
 
-# def fileupload(request):
-#     if request.method == 'POST':
-#         f = request.files['file']
-#         # 저장할 경로 + 파일명
-#         filename = f.filename
-#         print(filename)
-#         path = '/tmp/'
-#         f.save(path + secure_filename(filename))
-#         uploadpath = " " + path + filename + " "
-#         subprocess.call(["/usr/bin/dangerzone-container" " documenttopixels --document-filename" + uploadpath + "--pixel-dir /tmp/dangerzone-pixel --container-name flmcode/dangerzone"],shell=True)
-#         subprocess.call(["/usr/bin/dangerzone-container" " pixelstopdf --pixel-dir /tmp/dangerzone-pixel --safe-dir /tmp/dangerzone-safe --container-name flmcode/dangerzone --ocr 0 --ocr-lang eng"],shell=True)
-#         os.rename("/tmp/dangerzone-safe/safe-output-compressed.pdf",
-#                   "/tmp/dangerzone-safe/" + filename + "_" + "safe-output.pdf")
-#         sendfile(request, "/tmp/dangerzone-safe/" + filename + "_" + "safe-output.pdf", mimetype='application/pdf')
-#         return "undone"
-#     else:
-#         return render(request,'fileupload.html')
 
+def virustotal_download(resource_id, filename):
+    fs = FileSystemStorage()
+    url = 'https://www.virustotal.com/vtapi/v2/file/report'
+    params = {'apikey': API_KEY, 'resource': resource_id}
+    response = requests.get('https://www.virustotal.com/vtapi/v2/file/report', params=params)
+
+    if not fs.exists(filename):
+        with fs.open(filename, 'w') as json_file:
+            json.dump(response.json(), json_file, indent=4, sort_keys=True)
+
+def viruschart(request, jn):
+    filename = 'media/my_folder/'+jn
+    filename_default = 'media/my_folder/safe.json' 
+    json_data = ''
+
+
+    with open(filename_default,'r') as f:
+        json_data = json.load(f)
+        if 'scans' in json_data.keys():
+            json_data = json_data['scans']
+        else:
+            return pdf_view(request)
+
+        res = list()
+        #json_data = json.dumps(json_data)
+
+        for key, val in json_data.items():
+            res.append([key, val['detected']])
+
+    if json_data == '':
+        HttpResponseNotFound('NOT FOUND')
+    return render(request, 'detection.html', context = {'data':res})
 
