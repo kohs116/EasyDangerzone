@@ -11,51 +11,47 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 API_KEY = getattr(settings, 'API_KEY')
 
-date = str(datetime.date.today().month) + '-' + str(datetime.date.today().day)
-# Create your views here.
 
-now = datetime.datetime.now()
-nowTuple = now.timetuple()
-# 매일 23시에 실행되도록, 근데 될려나.?
-if nowTuple.tm_hour == 23:
-    f = open("media/db/Visitor.txt", "a")
-    txt = date + ' ' + str(g_number_of_visitor[date]) + '\n'
-    f.write(txt)
+# 첫번째로 서버 실행 시 file에 저장된 값을 불러오기(initialize)
+def readfile(dic, filename):
+    readpath = "media/db/"+filename
+    f = open(readpath, "r")
+    while True:
+        line = f.readline()
+        if not line: break
+        for i in range(len(line)):
+            if line[i] == ' ':
+                date = line[:i]
+                num = int(line[i+1:-1])
+                dic[date] = num
     f.close()
 
-    f = open("media/db/Filenum.txt", "a")
-    txt = date + ' ' + str(g_number_of_visitor[date]) + '\n'
-    f.write(txt)
-    f.close()
+    #길이 조정
+    if len(dic) > 15:
+        org_keylist = list(dic.keys())
+        idx = len(dic) - 15
+        keylist = org_keylist[idx:]
+
+        for key in org_keylist:
+            if key not in keylist:
+                dic.pop(key)
 
 g_number_of_visitor = dict()
 g_number_of_file = dict()
 
+readfile(g_number_of_visitor, "Visitor.txt")
+readfile(g_number_of_file, "Filenum.txt")
 fv = open("media/db/Visitor.txt", "r")
 ff = open("media/db/Filenum.txt","r")
-while True:
-    vline = fv.readline()
-    fline = ff.readline()
-    if not vline: break
-    if not fline: break
-    for i in range(len(vline)):
-        if vline[i] == ' ':
-            date = vline[:i]
-            num = int(vline[i+1:-1])
-            g_number_of_visitor[date] = num
-
-    for j in range(len(fline)):
-        if fline[j] == ' ':
-            date = fline[:j]
-            num = int(fline[j+1:-1])
-            g_number_of_file[date] = num
-fv.close()
-ff.close()
 
 print(g_number_of_visitor)
 print(g_number_of_file)
+
+
 def index(request):
-    global g_number_of_visitor, g_number_of_file,date
+    date = str(datetime.date.today().month) + '-' + str(datetime.date.today().day)
+
+    global g_number_of_visitor, g_number_of_file
     if g_number_of_visitor.get(date): #해당 날짜의 기록이 존재하면
         g_number_of_visitor[date] += 1
     else:
@@ -82,11 +78,6 @@ def index(request):
         if os.path.isfile(fn_rm):
             os.remove(fn_rm)
             print('existed file is deleted')
-
-#        fn_json = 'media/my_folder/virustotal-output.json'
-#        if os.path.isfile(fn_json):
-#            os.remove(fn_json)
-#            print('json file is deleted')
 
         filelist = list()
         mydir = '/tmp/dangerzone-pixel'
@@ -141,6 +132,23 @@ def contact(request):
     return render(request, 'contact.html')
 
 def dashboard(request):
+    date = str(datetime.date.today().month) + '-' + str(datetime.date.today().day)
+    #dashboard 실행 시 파일을 업데이트함.
+    f = open("media/db/Visitor.txt","w")
+    for key in g_number_of_visitor.keys():
+        txt = key + ' ' + str(g_number_of_visitor[key]) + '\n'
+        f.write(txt)
+    f.close()
+
+    f = open("media/db/Filenum.txt","w")
+    for key in g_number_of_file.keys():
+        txt = key + ' ' + str(g_number_of_file[key]) + '\n'
+        f.write(txt)
+    f.close()
+
+    readfile(g_number_of_visitor, "Visitor.txt")
+    readfile(g_number_of_file, "Filenum.txt")
+
     total_num_of_visitor_label = list(g_number_of_visitor.keys())
     total_num_of_file_label = list(g_number_of_file.keys())
     total_num_of_visitor = list(g_number_of_visitor.values())
