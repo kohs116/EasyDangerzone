@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 API_KEY = getattr(settings, 'API_KEY')
+WEBHOOK_KEY = getattr(settings,'WEBHOOK_KEY')
 
 
 # 첫번째로 서버 실행 시 file에 저장된 값을 불러오기(initialize)
@@ -123,13 +124,18 @@ def pdf_view(request):
         with fs.open(filename) as pdf:
             response = HttpResponse(pdf, content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="safe.pdf"'
+            
+            fn = 'media/my_folder/safe-output-compressed.pdf'
+            if os.path.isfile(fn):
+                os.remove(fn)
+            
             return response
     else:
-        return HttpResponseNotFound('Not Found!!!')
+        return HttpResponseRedirect(reverse('index'))
 
 @csrf_exempt
 def contact(request):
-    return render(request, 'contact.html')
+    return render(request, 'contact.html', {"key":WEBHOOK_KEY})
 
 def dashboard(request):
     date = str(datetime.date.today().month) + '-' + str(datetime.date.today().day)
