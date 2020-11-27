@@ -3,7 +3,9 @@ certifi==2020.6.20
 chardet==3.0.4
 Django==3.1.2
 idna==2.10
-mysqlclient @ file:///C:/Users/mgmgj/Downloads/mysqlclient-1.4.6-cp38-cp38-win32.whl
+mysql==0.0.2
+mysqlclient==2.0.1
+PyMySQL==0.10.1
 pytz==2020.1
 requests==2.24.0
 sqlparse==0.4.1

@@ -11,7 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 API_KEY = getattr(settings, 'API_KEY')
 WEBHOOK_KEY = getattr(settings,'WEBHOOK_KEY')
-BASE_DIR = 'C:/users/mgmgj/Desktop/test/easydangerzone/'
+BASE_DIR = os.getcwd()
 # Create your views here.
 
 ### DB ###
@@ -45,11 +45,17 @@ def GetCountsById(id):
     return date, visitor, conversion
 
 def GetCountsByDate(date, v, f):
-    counts = Counts.objects.filter(date=date)[0] #현재 일자
-    id = int(counts.id)
-    print("GetCountsByDate", counts.date)
+    try:
+        counts = Counts.objects.filter(date=date)[0] #현재 일자
+    except: #현재 일자로 된 데이터가 없으면
+        InsertCounts(date, 0, 0)
+        counts = Counts.objects.filter(date=date)[0]
 
-    for i in range(id-14, id+1):
+    id = int(counts.id)
+    min_date = 1
+    if id > 15:
+        min_date = id-14
+    for i in range(min_date, id+1):
         date, visitor, conversion = GetCountsById(i)
         v[date] = visitor
         f[date] = conversion
@@ -69,10 +75,6 @@ def index(request):
     date = str(datetime.date.today().year) + '-' + str(datetime.date.today().month) + '-' + str(datetime.date.today().day)
     v_dic, f_dic = dict(), dict()
     v_dic, f_dic = GetCountsByDate(date, v_dic, f_dic)
-
-    #########################
-    ## dangerzone 부분 생략 ##
-    ########################
     v_dic[date] += 1
 
     if request.method == 'POST' and request.FILES['inputFile']:
@@ -91,8 +93,10 @@ def index(request):
         UpdateCounts(date, v_dic[date], f_dic[date])
 
         os.rename(media_dir + fullname, media_dir + new_filename)
+        
+        execute_dangerzone(new_filename);
 
-        upload_path = BASE_DIR + media_dir
+        upload_path = BASE_DIR + '/'+media_dir
         virustotal_resource_id = virustotal_upload(upload_path + new_filename)
         print("resource id: ", virustotal_resource_id)
         jn = 'output.json'
@@ -108,6 +112,31 @@ def index(request):
 
         UpdateCounts(date, v_dic[date], f_dic[date])
         return render(request, 'siteapp/index.html')
+
+def execute_dangerzone(filename):
+    fn_rm = 'media/siteapp/files/safe-output-compressed.pdf'
+    if os.path.isfile(fn_rm):
+        os.remove(fn_rm)
+
+    filelist = list()
+    mydir = '/tmp/dangerzone-pixel'
+    for f in os.listdir(mydir):
+        if f.endswith(".height") or f.endswith(".rgb") or f.endswith(".width"):
+            filelist.append(f)
+    for f in filelist:
+        os.remove(os.path.join(mydir, f))
+    
+    uploadpath = os.getcwd() + '/media/siteapp/files/' + filename
+    subprocess.call(["/usr/bin/dangerzone-container" " documenttopixels --document-filename " + uploadpath + " --pixel-dir /tmp/dangerzone-pixel --container-name flmcode/dangerzone"],shell=True)
+    subprocess.call(["/usr/bin/dangerzone-container" " pixelstopdf --pixel-dir /tmp/dangerzone-pixel --safe-dir /tmp/dangerzone-safe --container-name flmcode/dangerzone --ocr 0 --ocr-lang eng"],shell=True)
+
+    path = '/home/ubuntu/udev/media/siteapp/files/'
+    file_url = '/tmp/dangerzone-safe/safe-output-compressed.pdf'
+    dest_url = path + 'safe-output-compressed.pdf'
+    try:
+        shutil.move(file_url, dest_url)
+    except:
+        print("The file to be moved does not exist\n")
 
 ### VirusTotal ###
 def virustotal_upload(orgfile):
@@ -156,7 +185,7 @@ def viruschart(request, jn):
 ### file 작업 ###
 def pdf_view(request):
     fs = FileSystemStorage()
-    filename = 'files/safe-output-compressed.pdf'
+    filename = 'siteapp/files/safe-output-compressed.pdf'
     if fs.exists(filename):
         with fs.open(filename) as pdf:
             response = HttpResponse(pdf, content_type='application/pdf')
@@ -168,6 +197,7 @@ def pdf_view(request):
 
             return response
     else:
+        print("None")
         return HttpResponseRedirect(reverse('index'))
 
 
