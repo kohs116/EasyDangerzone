@@ -112,9 +112,11 @@ python manage.py runserver
 
 ### ~9.2
 * 파일 업로드 시, 첫번째로 2page 파일, 두번째로 1page 파일을 업로드 하면 첫번째 파일의 두번째 페이지가 같이 merge되서 나오는 오류를 발견함 --> dangerzone-pixel 내부의 width, height, rgb를 매번 변환 시 지우고 새로 업데이트하도록 변경  
-* 지원 불가능한 확장자를 업로드하여 실행하면 내부에서 에러를 발생시켜 페이지 자체에 에러가 보여지는 오류 --> 확장자에 대한 조건을 걸어 지원 불가능한 확장자 파일을 선택 시 불가능하다는 alert를 띄우도록 변경
 
 ### ~9.10
 * virustotal api json to table  
 * link contact page to slack   
 * modify handling file about dashboard   
+
+### ~
+* 지원 불가능한 확장자를 업로드하여 실행하면 내부에서 에러를 발생시켜 페이지 자체에 에러가 보여지는 오류 --> 확장자에 대한 조건을 걸어 지원 불가능한 확장자 파일을 선택 시 불가능하다는 alert를 띄우도록 변경
